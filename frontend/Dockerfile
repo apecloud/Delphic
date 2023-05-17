@@ -1,13 +1,3 @@
-# Build container
-FROM node:18-alpine as builder
-
-WORKDIR /app
-COPY package.json .
-COPY yarn.lock .
-RUN yarn cache clean&& yarn install
-COPY . .
-RUN yarn build
-
 # Run container
 FROM nginx:1.22.0-alpine
 
@@ -20,7 +10,7 @@ RUN rm -rf /etc/nginx/conf.d
 COPY conf /etc/nginx
 
 # Copy static build files
-COPY --from=builder /app/build /usr/share/nginx/html/
+COPY build /usr/share/nginx/html/
 
 # Expose port 3000
 EXPOSE 3000
