@@ -1,0 +1,1 @@
+# frontend/Dockerfile multi-stage构建会在yarn install卡主,报网络问题,但是尝试了国内外各种主机,容器网络主机网络,调整各种yarn源,改了各种yarn参数后还是报错, 最终放弃,把第一个stage去掉,直接在宿主机执行yarn install & build,得到的结果是html/css/js
