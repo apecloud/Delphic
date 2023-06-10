@@ -9,6 +9,13 @@ django-celery-beat==2.5.0  # https://github.com/celery/django-celery-beat
 flower==1.2.0  # https://github.com/mher/flower
 uvicorn[standard]==0.22.0  # https://github.com/encode/uvicorn
 hupper
+qdrant_client
+sentence-transformers
+transformers
+huggingface_hub
+accelerate
+auto_gptq
+graphsignal
 
 # Django
 # ------------------------------------------------------------------------------
@@ -32,6 +39,5 @@ channels_redis
 
 # NLP-Related
 # ------------------------------------------------------------------------------
-llama_index==0.5.25  # https://github.com/jerryjliu/llama_index
-PyPDF2==3.*  # https://pypdf2.readthedocs.io/en/latest/
+llama_index==0.6.22  # https://github.com/jerryjliu/llama_index
 docx2txt==0.8

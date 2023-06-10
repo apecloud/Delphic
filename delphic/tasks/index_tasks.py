@@ -2,20 +2,31 @@ import logging
 import os
 import tempfile
 import uuid
+import traceback
+import qdrant_client
 from pathlib import Path
 
+from langchain import OpenAI
 from django.conf import settings
 from django.core.files import File
 from langchain import OpenAI
+from langchain.llms import HuggingFacePipeline, FakeListLLM
+from langchain.embeddings import HuggingFaceInstructEmbeddings, HuggingFaceEmbeddings
 from llama_index import (
-    GPTSimpleVectorIndex,
-    LLMPredictor,
+    VectorStoreIndex,
+    LangchainEmbedding,
     ServiceContext,
     download_loader,
+    SimpleDirectoryReader,
 )
-
+from qdrant_client.http.models import Distance, VectorParams
+from llama_index.llm_predictor import HuggingFaceLLMPredictor
+from llama_index.vector_stores.qdrant import QdrantVectorStore
+from llama_index.storage.storage_context import StorageContext
 from config import celery_app
 from delphic.indexes.models import Collection, CollectionStatus
+from delphic.utils.collections import get_embedding_model
+from transformers import LlamaForCausalLM, LlamaTokenizer, pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -61,44 +72,43 @@ def create_index(collection_id):
                         f.write(file_data)
 
                 # Create the GPTSimpleVectorIndex
-                SimpleDirectoryReader = download_loader("SimpleDirectoryReader")
                 loader = SimpleDirectoryReader(
-                    tempdir_path, recursive=True, exclude_hidden=False
+                    tempdir, recursive=True, exclude_hidden=False
                 )
                 documents = loader.load_data()
-                # index = GPTSimpleVectorIndex(documents)
 
-                # documents = SimpleDirectoryReader(str(tempdir_path)).load_data()
-                llm_predictor = LLMPredictor(
-                    llm=OpenAI(
-                        temperature=0,
-                        model_name=settings.MODEL_NAME,
-                        max_tokens=settings.MAX_TOKENS,
-                    )
+                client = qdrant_client.QdrantClient(
+                    # you can use :memory: mode for fast and light-weight experiments,
+                    # it does not require to have Qdrant deployed anywhere
+                    # but requires qdrant-client >= 1.1.1
+                    # location=":memory:"
+                    # otherwise set Qdrant instance address with:
+                    url=settings.QDRANT_URL,
+                    # set API KEY for Qdrant Cloud
+                    # api_key="<qdrant-api-key>",
                 )
+                result = client.get_collections()
+                for item in result.collections:
+                    if item.name == collection.id and collection.status == CollectionStatus.COMPLETE:
+                        return
+
+                client.create_collection(
+                    collection_name=collection.id,
+                    vectors_config=VectorParams(size=settings.EMBEDDING_VECTOR_SIZE, distance=Distance.DOT),
+                )
+                vector_store = QdrantVectorStore(client=client, collection_name=collection.id)
+                storage_context = StorageContext.from_defaults(vector_store=vector_store)
+
                 service_context = ServiceContext.from_defaults(
-                    llm_predictor=llm_predictor
+                    llm=FakeListLLM(responses=["fake"]),
+                    embed_model=get_embedding_model(),
                 )
-
                 # build index
-                index = GPTSimpleVectorIndex.from_documents(
-                    documents, service_context=service_context
+                VectorStoreIndex.from_documents(
+                    documents, service_context=service_context, storage_context=storage_context
                 )
 
-                index_str = index.save_to_string()
-
-                # Save the index_str to the Comparison.model FileField
-                with tempfile.NamedTemporaryFile(delete=False) as f:
-                    f.write(index_str.encode())
-                    f.flush()
-                    f.seek(0)
-                    collection.model.save(f"model_{uuid.uuid4()}.json", File(f))
-                    collection.status = CollectionStatus.COMPLETE
-                    collection.save()
-
-                # Delete the temporary index file
-                os.unlink(f.name)
-
+            collection.status = CollectionStatus.COMPLETE
             collection.processing = False
             collection.save()
 
@@ -106,6 +116,7 @@ def create_index(collection_id):
 
         except Exception as e:
             logger.error(f"Error creating index for collection {collection_id}: {e}")
+            traceback.print_exc()
             collection.status = CollectionStatus.ERROR
             collection.save()
 

@@ -15,6 +15,8 @@ interface Message {
   timestamp: string;
 }
 
+const { REACT_APP_HOST } = process.env;
+
 const ChatView = ({
   authToken,
   selectedCollection,
@@ -33,7 +35,7 @@ const ChatView = ({
   const setupWebsocket = () => {
     setConnecting(true);
     websocket.current = new WebSocket(
-      `ws://localhost:8000/ws/collections/${selectedCollection.id}/query/?token=${authToken}`
+      `ws://` + REACT_APP_HOST + `:8000/ws/collections/${selectedCollection.id}/query/?token=${authToken}`
     );
 
     websocket.current.onopen = (event) => {

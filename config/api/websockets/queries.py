@@ -39,7 +39,8 @@ class CollectionQueryConsumer(AsyncWebsocketConsumer):
 
             {query_str}
             """
-            response = self.index.query(modified_query_str)
+            engine = self.index.as_query_engine()
+            response = engine.query(modified_query_str)
 
             # Format the response as markdown
             markdown_response = f"## Response\n\n{response}\n\n"

@@ -10,6 +10,7 @@ from ninja_jwt.controller import NinjaJWTDefaultController
 from delphic.indexes.models import Collection, Document
 from delphic.tasks import create_index
 from delphic.utils.collections import query_collection
+from delphic.indexes.models import Collection, CollectionStatus
 
 from .auth.api_key import NinjaApiKeyAuth
 from .ninja_types import (
@@ -82,7 +83,7 @@ async def create_collection(
         created=collection_instance.created.isoformat(),
         modified=collection_instance.modified.isoformat(),
         processing=collection_instance.processing,
-        has_model=bool(collection_instance.model.name),
+        has_model= (collection_instance.status == CollectionStatus.COMPLETE),
         document_names=await sync_to_async(list)(
             await sync_to_async(collection_instance.documents.values_list)(
                 "file", flat=True
@@ -126,7 +127,7 @@ async def get_my_collections_view(request: HttpRequest):
             "created": collection.created.isoformat(),
             "modified": collection.modified.isoformat(),
             "processing": collection.processing,
-            "has_model": bool(collection.model.name),
+            "has_model": collection.status == CollectionStatus.COMPLETE,
             "document_names": await sync_to_async(list)(
                 await sync_to_async(collection.documents.values_list)("file", flat=True)
             ),

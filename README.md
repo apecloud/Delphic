@@ -128,7 +128,7 @@ your system python interpreter, but we recommend using pyenv and creating a virt
 Then, in the root of your local repo, run these commands:
 
 ```
-pip install -r ./requirements/local.txt
+pip install -i https://mirrors.aliyun.com/pypi/simple/ -r ./requirements/local.txt
 pre-commit install
 ```
 
@@ -139,7 +139,7 @@ Now, when you stage your commits, ou ar code formatting and style checks will ru
 We have a basic test suite in `./tests`. You can run the tests by typing:
 
 ```commandline
-sudo docker-compose -f local.yml run django python manage.py test
+sudo docker compose -f local.yml run django python manage.py test
 ```
 
 ## Frontend Setup
@@ -153,8 +153,13 @@ Cd into the frontend directory, install your frontend dependencies and start a d
 
 ```commandline
 cd frontend
+
+nvm install
+
 nvm use
-npm install yarn
+
+npm install --global yarn
+
 yarn install
 ```
 
@@ -166,5 +171,5 @@ to launch the backend in order for it to work properly.
 Launch the backend without the fullstack flag:
 
 ```commandline
-sudo docker-compose -f local.yml up
+sudo docker compose -f local.yml up
 ```

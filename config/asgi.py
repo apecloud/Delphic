@@ -36,6 +36,11 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.local")
 # This application object is used by any ASGI server configured to use this file.
 django_application = get_asgi_application()
 
+from django.conf import settings
+if settings.GRAPHSIGNAL_API_KEY != "":
+    import graphsignal
+    graphsignal.configure(api_key=settings.GRAPHSIGNAL_API_KEY, deployment='delphic')
+
 application = ProtocolTypeRouter(
     {
         "http": get_asgi_application(),

@@ -26,6 +26,8 @@ interface LoginFormProps {
   onLogin: (authToken: string) => void;
 }
 
+const { REACT_APP_API_ROOT_URL } = process.env;
+
 const CardWrapper = styled(Card)({
   maxWidth: 400,
   margin:"0px",
@@ -77,7 +79,7 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
 
     try {
       const response = await axios.post<LoginResponse>(
-        "http://localhost:8000/api/token/pair",
+        REACT_APP_API_ROOT_URL + `/api/token/pair`,
         { username, password },
       );
       localStorage.setItem("accessToken", response.data.access);

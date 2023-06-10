@@ -5,9 +5,12 @@ FROM python:3.10.11-slim-bullseye as python
 FROM python as python-build-stage
 
 ARG BUILD_ENVIRONMENT=local
+ARG PIP_REGISTRY=https://mirrors.aliyun.com/pypi/simple/
+
+RUN apt-get update
 
 # Install apt packages
-RUN apt-get update && apt-get install --no-install-recommends -y \
+RUN apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
   build-essential \
   # psycopg2 dependencies
@@ -17,7 +20,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 COPY ./requirements .
 
 # Create Python Dependency and Sub-Dependency Wheels.
-RUN pip wheel --wheel-dir /usr/src/app/wheels  \
+RUN pip wheel -i ${PIP_REGISTRY} --wheel-dir /usr/src/app/wheels  \
   -r ${BUILD_ENVIRONMENT}.txt
 
 
@@ -33,8 +36,10 @@ ENV BUILD_ENV ${BUILD_ENVIRONMENT}
 
 WORKDIR ${APP_HOME}
 
+RUN apt-get update
+
 # Install required system dependencies
-RUN apt-get update && apt-get install --no-install-recommends -y \
+RUN apt-get install --no-install-recommends -y \
   # psycopg2 dependencies
   libpq-dev \
   # Translations dependencies

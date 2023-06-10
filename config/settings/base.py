@@ -359,7 +359,7 @@ SOCIALACCOUNT_FORMS = {"signup": "delphic.users.forms.UserSocialSignupForm"}
 # API Configuration
 # ------------------------------------------------------------------------------
 # If OPEN_ACCESS_MODE is True, no API_KEY is checked (for use in local deploys or on VPC)
-OPEN_ACCESS_MODE = env.bool("OPEN_ACCESS_MODE", False)
+OPEN_ACCESS_MODE = env.bool("OPEN_ACCESS_MODE", True)
 
 # Channels Configuration
 # ------------------------------------------------------------------------------

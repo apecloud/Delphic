@@ -338,3 +338,5 @@ delphic/media/*
 
 ### Models for Question Answering
 cache/*
+
+.idea

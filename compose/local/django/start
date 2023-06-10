@@ -6,4 +6,7 @@ set -o nounset
 
 
 python manage.py migrate
+
+#python manage.py models
+
 exec uvicorn config.asgi:application --host 0.0.0.0 --reload --reload-include '*.html' --reload-exclude './chat_all_the_docs/media/*'

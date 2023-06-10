@@ -11,7 +11,7 @@ SECRET_KEY = env(
     default="pWahScrbZQLSKugZCroNzqo9MxfR0X1VFnykITFJmz6wjuoWcZXk176xr6rQLSsg",
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ["localhost", "localhost:8000", "0.0.0.0", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "localhost:8000", "0.0.0.0", "127.0.0.1", "*"]
 
 # CACHES
 # ------------------------------------------------------------------------------
@@ -33,9 +33,9 @@ EMAIL_BACKEND = env(
 # django-debug-toolbar
 # ------------------------------------------------------------------------------
 # https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#prerequisites
-INSTALLED_APPS += ["debug_toolbar"]  # noqa: F405
+# INSTALLED_APPS += ["debug_toolbar"]  # noqa: F405
 # https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#middleware
-MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]  # noqa: F405
+# MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]  # noqa: F405
 # https://django-debug-toolbar.readthedocs.io/en/latest/configuration.html#debug-toolbar-config
 DEBUG_TOOLBAR_CONFIG = {
     "DISABLE_PANELS": ["debug_toolbar.panels.redirects.RedirectsPanel"],
@@ -62,3 +62,15 @@ CELERY_TASK_EAGER_PROPAGATES = True
 # CORS (Dev Only)
 # ------------------------------------------------------------------------------
 CORS_ALLOW_ALL_ORIGINS = True
+
+INFERENCE_MODEL = env("INFERENCE_MODEL", default="TheBloke/WizardLM-7B-uncensored-GPTQ")
+INFERENCE_MODEL_BASENAME = env("INFERENCE_MODEL_BASENAME", default="WizardLM-7B-uncensored-GPTQ-4bit-128g.compat.no-act-order.safetensors")
+
+EMBEDDING_MODEL = env("EMBEDDING_MODEL", default="sentence-transformers/all-MiniLM-L6-v2")
+EMBEDDING_VECTOR_SIZE = env("EMBEDDING_VECTOR_SIZE", default=384)
+
+GRAPHSIGNAL_API_KEY = env("GRAPHSIGNAL_API_KEY", default="")
+
+QDRANT_URL = env("QDRANT_URL", default="http://qdrant:6333")
+
+DATA_UPLOAD_MAX_NUMBER_FILES = 1000

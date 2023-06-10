@@ -14,14 +14,23 @@ services:
     depends_on:
       - postgres
       - redis
+      - qdrant
     volumes:
       - .:/app:z
+      - /root/.cache:/root/.cache
     env_file:
       - ./.envs/.local/.django
       - ./.envs/.local/.postgres
     ports:
       - "8000:8000"
     command: /start
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
 
   frontend:
     build:
@@ -53,6 +62,10 @@ services:
     image: redis:6
     container_name: delphic_local_redis
 
+  qdrant:
+    image: qdrant/qdrant
+    container_name: delphic_local_qdrant
+
   celeryworker:
     <<: *django
     image: delphic_local_celeryworker
@@ -60,8 +73,19 @@ services:
     depends_on:
       - redis
       - postgres
+      - qdrant
+    volumes:
+      - .:/app:z
+      - /root/.cache:/root/.cache
     ports: []
     command: /start-celeryworker
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
 
   celerybeat:
     <<: *django
