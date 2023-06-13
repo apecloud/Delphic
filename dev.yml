@@ -1,0 +1,101 @@
+version: '3'
+
+volumes:
+  delphic_local_postgres_data: {}
+  delphic_local_postgres_data_backups: {}
+
+services:
+  django: &django
+    image: registry-vpc.cn-hangzhou.aliyuncs.com/iziang/delphic
+    container_name: delphic_local_django
+    depends_on:
+      - postgres
+      - redis
+      - qdrant
+    volumes:
+      - .:/app:z
+      - /root/.cache:/root/.cache
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres
+    ports:
+      - "8000:8000"
+    command: ["sleep", "100000000"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ./Dockerfile
+    image: delphic_local_frontend
+    container_name: delphic_local_frontend
+    env_file:
+      - ./frontend/.env
+    ports:
+      - "3000:3000"
+    profiles: ["fullstack"]
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: delphic_production_postgres
+    container_name: delphic_local_postgres
+    volumes:
+      - delphic_local_postgres_data:/var/lib/postgresql/data
+      - delphic_local_postgres_data_backups:/backups
+    env_file:
+      - ./.envs/.local/.postgres
+
+  redis:
+    image: redis:6
+    container_name: delphic_local_redis
+
+  qdrant:
+    image: qdrant/qdrant
+    container_name: delphic_local_qdrant
+
+  celeryworker:
+    <<: *django
+    image: registry-vpc.cn-hangzhou.aliyuncs.com/iziang/delphic
+    container_name: delphic_local_celeryworker
+    depends_on:
+      - redis
+      - postgres
+      - qdrant
+    volumes:
+      - .:/app:z
+      - /root/.cache:/root/.cache
+    ports: []
+    command: /start-celeryworker
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  celerybeat:
+    <<: *django
+    image: registry-vpc.cn-hangzhou.aliyuncs.com/iziang/delphic
+    container_name: delphic_local_celerybeat
+    depends_on:
+      - redis
+      - postgres
+    ports: []
+    command: /start-celerybeat
+
+  flower:
+    <<: *django
+    image: registry-vpc.cn-hangzhou.aliyuncs.com/iziang/delphic
+    container_name: delphic_local_flower
+    ports:
+      - "5555:5555"
+    command: /start-flower
