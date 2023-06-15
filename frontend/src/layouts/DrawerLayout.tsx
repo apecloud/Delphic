@@ -175,7 +175,7 @@ export default function DrawerLayout2(props: Props) {
           <ListItemButton
             onClick={() =>
               window.open(
-                "https://github.com/JSv4/Delphic",
+                "https://github.com/apecloud/delphic",
                 "_blank",
                 "noreferrer"
               )

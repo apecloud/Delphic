@@ -6,12 +6,16 @@ volumes:
 
 services:
   django: &django
-    image: registry-vpc.cn-hangzhou.aliyuncs.com/iziang/delphic
+    build:
+      context: .
+      dockerfile: ./compose/local/django/Dockerfile
+    image: delphic_local_django
     container_name: delphic_local_django
     depends_on:
       - postgres
       - redis
       - qdrant
+#      - model
     volumes:
       - .:/app:z
       - /root/.cache:/root/.cache
@@ -20,7 +24,7 @@ services:
       - ./.envs/.local/.postgres
     ports:
       - "8000:8000"
-    command: ["sleep", "100000000"]
+    command: /start
     deploy:
       resources:
         reservations:
@@ -29,12 +33,32 @@ services:
               count: 1
               capabilities: [ gpu ]
 
+#  model:
+#    image: delphic_local_django
+#    container_name: delphic_local_model
+#    volumes:
+#      - .:/app:z
+#      - /root/.cache:/root/.cache
+#    ports:
+#      - "8000:8000"
+#    entrypoint: /start-model
+#    #    command: ["sleep", "1000000"]
+#    deploy:
+#      resources:
+#        reservations:
+#          devices:
+#            - driver: nvidia
+#              count: 1
+#              capabilities: [ gpu ]
+
   frontend:
     build:
       context: ./frontend
       dockerfile: ./Dockerfile
     image: delphic_local_frontend
     container_name: delphic_local_frontend
+    depends_on:
+      - django
     env_file:
       - ./frontend/.env
     ports:
@@ -60,10 +84,12 @@ services:
   qdrant:
     image: qdrant/qdrant
     container_name: delphic_local_qdrant
+    volumes:
+      - /tmp/qdrant_storage:/qdrant/storage
 
   celeryworker:
     <<: *django
-    image: registry-vpc.cn-hangzhou.aliyuncs.com/iziang/delphic
+    image: delphic_local_django
     container_name: delphic_local_celeryworker
     depends_on:
       - redis
@@ -84,7 +110,7 @@ services:
 
   celerybeat:
     <<: *django
-    image: registry-vpc.cn-hangzhou.aliyuncs.com/iziang/delphic
+    image: delphic_local_django
     container_name: delphic_local_celerybeat
     depends_on:
       - redis
@@ -94,7 +120,7 @@ services:
 
   flower:
     <<: *django
-    image: registry-vpc.cn-hangzhou.aliyuncs.com/iziang/delphic
+    image: delphic_local_django
     container_name: delphic_local_flower
     ports:
       - "5555:5555"

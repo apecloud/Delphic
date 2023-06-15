@@ -1,13 +1,17 @@
-import sys
+import json
 import torch
 import logging
 import textwrap
 import qdrant_client
 from pathlib import Path
 
+from langchain.agents import load_tools
+from langchain.utilities import TextRequestsWrapper
 from auto_gptq import AutoGPTQForCausalLM, BaseQuantizeConfig
+from typing import Optional, List, Mapping, Any
 from django.conf import settings
 from langchain import OpenAI
+from langchain.llms.base import LLM
 from langchain.embeddings import HuggingFaceInstructEmbeddings, HuggingFaceEmbeddings
 from llama_index import LLMPredictor, ServiceContext
 from llama_index.llm_predictor import HuggingFaceLLMPredictor
@@ -24,8 +28,6 @@ from transformers import LlamaForCausalLM, LlamaTokenizer, pipeline
 
 from delphic.indexes.models import Collection, CollectionStatus
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
 logger = logging.getLogger(__name__)
 
 
@@ -81,6 +83,7 @@ async def load_collection_model(collection_id: str | int) -> VectorStoreIndex:
         service_context = ServiceContext.from_defaults(
             llm=get_inference_model(),
             embed_model=get_embedding_model(),
+            context_window=2048,
         )
 
         vector_store = QdrantVectorStore(client=client, collection_name=collection.id)
@@ -160,7 +163,7 @@ def load_model(device_type, model_id, model_basename=None):
     logging.info(f'Loading Model: {model_id}, on: {device_type}')
     logging.info('This action can take a few minutes!')
 
-    if model_basename is not None:
+    if model_basename is not None and model_basename != "":
         # The code supports all huggingface models that ends with GPTQ and have some variation of .no-act.order or .safetensors in their HF repo.
         logging.info('Using AutoGPTQForCausalLM for quantized models')
 
@@ -215,6 +218,7 @@ def load_model(device_type, model_id, model_basename=None):
         generation_config=generation_config
     )
 
+
     local_llm = HuggingFacePipeline(pipeline=pipe)
     logging.info('Local LLM Loaded')
 
@@ -222,10 +226,33 @@ def load_model(device_type, model_id, model_basename=None):
 
 
 def get_inference_model():
-    return load_model("cuda", settings.INFERENCE_MODEL, settings.INFERENCE_MODEL_BASENAME)
+    if settings.EXTERNAL_INFERENCE_ENDPOINT is not None and settings.EXTERNAL_INFERENCE_ENDPOINT != "":
+        llm = CustomLLM()
+        logging.info("Remote LLM %s Loaded", settings.EXTERNAL_INFERENCE_ENDPOINT)
+        return llm
+
+    return load_model(settings.DEVICE_TYPE, settings.INFERENCE_MODEL, settings.INFERENCE_MODEL_BASENAME)
 
 
 def get_embedding_model():
     return LangchainEmbedding(HuggingFaceEmbeddings(
         model_name=settings.EMBEDDING_MODEL, model_kwargs={"device": 0}
     ))
+
+
+class CustomLLM(LLM):
+
+    def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
+        prompt_length = len(prompt)
+        response = TextRequestsWrapper().post(settings.EXTERNAL_INFERENCE_ENDPOINT, prompt)
+        print("prompt: " + prompt)
+        print("response: " + response)
+        return json.loads(response)[0]["generated_text"][prompt_length:]
+
+    @property
+    def _identifying_params(self) -> Mapping[str, Any]:
+        return {"name_of_model": settings.INFERENCE_MODEL}
+
+    @property
+    def _llm_type(self) -> str:
+        return "custom"

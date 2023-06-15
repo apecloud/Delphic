@@ -1,4 +1,5 @@
 import json
+import traceback
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 
@@ -40,7 +41,11 @@ class CollectionQueryConsumer(AsyncWebsocketConsumer):
             {query_str}
             """
             engine = self.index.as_query_engine()
-            response = engine.query(modified_query_str)
+            try:
+                response = engine.query(modified_query_str)
+            except Exception as e:
+                print(f"Error during query: {e}")  # Debugging print statement
+                traceback.print_exc()
 
             # Format the response as markdown
             markdown_response = f"## Response\n\n{response}\n\n"

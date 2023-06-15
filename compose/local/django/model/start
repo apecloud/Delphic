@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+cd delphic/serving
+
+python train.py
+
+bentoml serve serving:svc --host 0.0.0.0 --port 12345 --development --reload
