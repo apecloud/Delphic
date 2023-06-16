@@ -67,7 +67,7 @@ DEVICE_TYPE = env("DEVICE_TYPE", default="cuda")
 
 EXTERNAL_INFERENCE_ENDPOINT = env("EXTERNAL_INFERENCE_ENDPOINT", default="")
 
-INFERENCE_MODEL = env("INFERENCE_MODEL", default="TheBloke/vicuna-7B-1.1-HF")
+INFERENCE_MODEL = env("INFERENCE_MODEL", default="TheBloke/Wizard-Vicuna-7B-Uncensored-HF")
 INFERENCE_MODEL_BASENAME = env("INFERENCE_MODEL_BASENAME", default=None)
 
 EMBEDDING_MODEL = env("EMBEDDING_MODEL", default="sentence-transformers/all-MiniLM-L6-v2")

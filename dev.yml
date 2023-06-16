@@ -22,6 +22,9 @@ services:
     env_file:
       - ./.envs/.local/.django
       - ./.envs/.local/.postgres
+    environment:
+      REQUIRE_EMBEDDING_MODEL: "True"
+      REQUIRE_INFERENCE_MODEL: "True"
     ports:
       - "8000:8000"
     command: /start
@@ -66,10 +69,7 @@ services:
     profiles: ["fullstack"]
 
   postgres:
-    build:
-      context: .
-      dockerfile: ./compose/production/postgres/Dockerfile
-    image: delphic_production_postgres
+    image: postgres:14
     container_name: delphic_local_postgres
     volumes:
       - delphic_local_postgres_data:/var/lib/postgresql/data
@@ -88,7 +88,6 @@ services:
       - /tmp/qdrant_storage:/qdrant/storage
 
   celeryworker:
-    <<: *django
     image: delphic_local_django
     container_name: delphic_local_celeryworker
     depends_on:
@@ -98,8 +97,13 @@ services:
     volumes:
       - .:/app:z
       - /root/.cache:/root/.cache
+    environment:
+      REQUIRE_EMBEDDING_MODEL: "True"
     ports: []
     command: /start-celeryworker
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres
     deploy:
       resources:
         reservations:
@@ -109,19 +113,24 @@ services:
               capabilities: [ gpu ]
 
   celerybeat:
-    <<: *django
     image: delphic_local_django
     container_name: delphic_local_celerybeat
     depends_on:
       - redis
       - postgres
+      - django
     ports: []
     command: /start-celerybeat
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres
 
   flower:
-    <<: *django
     image: delphic_local_django
     container_name: delphic_local_flower
     ports:
       - "5555:5555"
     command: /start-flower
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres

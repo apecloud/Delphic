@@ -92,11 +92,6 @@ const ChatView = ({
   useEffect(() => {
     setupWebsocket();
     setMessages([]);
-  }, []);
-
-  useEffect(() => {
-    setupWebsocket();
-    setMessages([]);
   }, [selectedCollection]);
 
   const handleSendMessage = () => {

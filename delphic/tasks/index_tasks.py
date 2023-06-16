@@ -1,32 +1,27 @@
 import logging
-import os
 import tempfile
-import uuid
 import traceback
-import qdrant_client
 from pathlib import Path
 
-from langchain import OpenAI
+import qdrant_client
 from django.conf import settings
-from django.core.files import File
-from langchain import OpenAI
-from langchain.llms import HuggingFacePipeline, FakeListLLM
-from langchain.embeddings import HuggingFaceInstructEmbeddings, HuggingFaceEmbeddings
+from langchain.llms import FakeListLLM
 from llama_index import (
     VectorStoreIndex,
-    LangchainEmbedding,
     ServiceContext,
-    download_loader,
     SimpleDirectoryReader,
 )
-from qdrant_client.http.models import Distance, VectorParams
-from llama_index.llm_predictor import HuggingFaceLLMPredictor
-from llama_index.vector_stores.qdrant import QdrantVectorStore
 from llama_index.storage.storage_context import StorageContext
+from llama_index.vector_stores.qdrant import QdrantVectorStore
+from qdrant_client.http.models import Distance, VectorParams
+
 from config import celery_app
 from delphic.indexes.models import Collection, CollectionStatus
-from delphic.utils.collections import get_embedding_model
-from transformers import LlamaForCausalLM, LlamaTokenizer, pipeline
+from delphic.models.models import get_embedding_model
+from langchain.embeddings import HuggingFaceEmbeddings
+from llama_index import (
+    LangchainEmbedding
+)
 
 logger = logging.getLogger(__name__)
 
@@ -99,9 +94,13 @@ def create_index(collection_id):
                 vector_store = QdrantVectorStore(client=client, collection_name=collection.id)
                 storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
+                hf_embed_model = HuggingFaceEmbeddings(
+                    model_name=settings.EMBEDDING_MODEL, model_kwargs={"device": 0}
+                )
+                embed_model = LangchainEmbedding(hf_embed_model)
                 service_context = ServiceContext.from_defaults(
                     llm=FakeListLLM(responses=["fake"]),
-                    embed_model=get_embedding_model(),
+                    embed_model=embed_model,
                 )
                 # build index
                 VectorStoreIndex.from_documents(
