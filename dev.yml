@@ -97,8 +97,6 @@ services:
     volumes:
       - .:/app:z
       - /root/.cache:/root/.cache
-    environment:
-      REQUIRE_EMBEDDING_MODEL: "True"
     ports: []
     command: /start-celeryworker
     env_file:

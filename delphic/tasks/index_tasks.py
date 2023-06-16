@@ -94,13 +94,9 @@ def create_index(collection_id):
                 vector_store = QdrantVectorStore(client=client, collection_name=collection.id)
                 storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
-                hf_embed_model = HuggingFaceEmbeddings(
-                    model_name=settings.EMBEDDING_MODEL, model_kwargs={"device": 0}
-                )
-                embed_model = LangchainEmbedding(hf_embed_model)
                 service_context = ServiceContext.from_defaults(
                     llm=FakeListLLM(responses=["fake"]),
-                    embed_model=embed_model,
+                    embed_model=get_embedding_model(),
                 )
                 # build index
                 VectorStoreIndex.from_documents(

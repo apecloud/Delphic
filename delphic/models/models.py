@@ -13,7 +13,7 @@ from llama_index import (
     LangchainEmbedding
 )
 from langchain.llms import HuggingFacePipeline
-from transformers import AutoTokenizer, AutoModelForQuestionAnswering, AutoModelForCausalLM, GenerationConfig
+from transformers import AutoTokenizer, AutoModelForCausalLM, GenerationConfig
 from transformers import LlamaForCausalLM, LlamaTokenizer, pipeline
 
 def load_model(device_type, model_id, model_basename=None):
