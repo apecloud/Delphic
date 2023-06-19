@@ -35,12 +35,12 @@ const CardWrapper = styled(Card)({
 });
 
 const ImageWrapper = styled(Avatar)({
-    width: 100,
-    height: 100,
+    width: 150,
+    height: 120,
     margin: '0 auto',
     marginBottom: 16,
     padding: 20,
-    background: '#a4a0a0'
+    // background: '#a4a0a0'
   });
 
 const TextFieldWrapper = styled(TextField)({

@@ -17,6 +17,7 @@ accelerate
 auto_gptq
 graphsignal
 bentoml
+InstructorEmbedding
 
 # Django
 # ------------------------------------------------------------------------------

@@ -8,7 +8,7 @@ from auto_gptq import AutoGPTQForCausalLM, BaseQuantizeConfig
 from typing import Optional, List, Mapping, Any
 from django.conf import settings
 from langchain.llms.base import LLM
-from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.embeddings import HuggingFaceEmbeddings, HuggingFaceInstructEmbeddings
 from llama_index import (
     LangchainEmbedding
 )
@@ -127,7 +127,7 @@ def get_inference_model():
 
 
 def get_embedding_model():
-    return LangchainEmbedding(HuggingFaceEmbeddings(
+    return LangchainEmbedding(HuggingFaceInstructEmbeddings(
         model_name=settings.EMBEDDING_MODEL, model_kwargs={"device": 0}
     ))
 

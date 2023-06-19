@@ -2,7 +2,7 @@ version: '3'
 
 volumes:
   delphic_local_postgres_data: {}
-  delphic_local_postgres_data_backups: {}
+  delphic_local_qdrant_data: {}
 
 services:
   django: &django
@@ -60,6 +60,7 @@ services:
       dockerfile: ./Dockerfile
     image: delphic_local_frontend
     container_name: delphic_local_frontend
+    network_mode: host
     depends_on:
       - django
     env_file:
@@ -73,7 +74,6 @@ services:
     container_name: delphic_local_postgres
     volumes:
       - delphic_local_postgres_data:/var/lib/postgresql/data
-      - delphic_local_postgres_data_backups:/backups
     env_file:
       - ./.envs/.local/.postgres
 
@@ -85,7 +85,7 @@ services:
     image: qdrant/qdrant
     container_name: delphic_local_qdrant
     volumes:
-      - /tmp/qdrant_storage:/qdrant/storage
+      - delphic_local_qdrant_data:/qdrant/storage
 
   celeryworker:
     image: delphic_local_django
