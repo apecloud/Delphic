@@ -89,12 +89,14 @@ def create_index(collection_id):
 
                 client.create_collection(
                     collection_name=collection.id,
-                    vectors_config=VectorParams(size=settings.EMBEDDING_VECTOR_SIZE, distance=Distance.DOT),
+                    vectors_config=VectorParams(size=settings.EMBEDDING_VECTOR_SIZE, distance=Distance.COSINE),
                 )
                 vector_store = QdrantVectorStore(client=client, collection_name=collection.id)
                 storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
                 service_context = ServiceContext.from_defaults(
+                    chunk_size=2048,
+                    chunk_overlap=200,
                     llm=FakeListLLM(responses=["fake"]),
                     embed_model=get_embedding_model(),
                 )

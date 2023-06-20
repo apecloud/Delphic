@@ -127,8 +127,13 @@ def get_inference_model():
 
 
 def get_embedding_model():
-    return LangchainEmbedding(HuggingFaceInstructEmbeddings(
-        model_name=settings.EMBEDDING_MODEL, model_kwargs={"device": 0}
+    if settings.EMBEDDING_MODEL.startswith("hkunlp"):
+        model = HuggingFaceInstructEmbeddings
+    else:
+        model = HuggingFaceEmbeddings
+
+    return LangchainEmbedding(model(
+        model_name=settings.EMBEDDING_MODEL, model_kwargs={"device": "cuda"}
     ))
 
 

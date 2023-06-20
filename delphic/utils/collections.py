@@ -69,6 +69,8 @@ async def load_collection_model(collection_id: str | int) -> VectorStoreIndex:
             llm=INFERENCE_MODEL,
             embed_model=EMBEDDING_MODEL,
             context_window=2048,
+            chunk_size=2048,
+            chunk_overlap=200,
         )
 
         vector_store = QdrantVectorStore(client=client, collection_name=collection.id)

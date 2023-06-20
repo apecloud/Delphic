@@ -72,7 +72,7 @@ async def create_collection(
         document = Document(collection=collection_instance, file=doc_file)
         await sync_to_async(document.save)()
 
-    create_index.si(collection_instance.id).apply_async(time_limit=60, soft_time_limit=15)
+    create_index.si(collection_instance.id).apply_async(time_limit=300, soft_time_limit=180)
 
     # result = await sync_to_async(CollectionModelSchema.from_orm)(collection_instance)
     return await sync_to_async(CollectionModelSchema)(

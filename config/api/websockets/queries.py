@@ -36,10 +36,10 @@ class CollectionQueryConsumer(AsyncWebsocketConsumer):
         if self.index is not None:
             query_str = text_data_json["query"]
             modified_query_str = f"""
-            Please return a nicely formatted markdown string to this request:
+Please return a nicely formatted markdown string to this request:
 
-            {query_str}
-            """
+{query_str}
+"""
             engine = self.index.as_query_engine()
             try:
                 response = engine.query(modified_query_str)
